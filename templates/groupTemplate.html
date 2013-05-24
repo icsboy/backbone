@@ -1,0 +1,10 @@
+<ul style="margin-left:60px">
+	<% $.each(data, function(k, v) { %>
+	<li><a href="#user/<%= k %>"><strong><%= v.name %></strong></a>  <a id="<%= k %>" class="del">x</a></li>
+	<% }) %>
+</ul>
+<div style="margin-left:40px">
+	name: <input type="text" id="name" /><br>
+	age: <input type="text" id="age" /><br>
+	<button id="addUser">Add User</button>
+</div>

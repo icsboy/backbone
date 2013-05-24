@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Insert title here</title>
+<script src="http://ajax.googleapis.com/ajax/libs/jquery/1/jquery.min.js"></script>
+<script src="http://documentcloud.github.com/underscore/underscore-min.js"></script>
+<script src="http://documentcloud.github.com/backbone/backbone-min.js"></script>
+</head>
+<body>
+
+<h3>Backbone Test</h3>
+<div id="container"></div>
+<script type="text/template" id="groupTemplate">
+<ul>
+	<% $.each(data, function(k, v) { %>
+	<li><a href="#user/<%= k %>"><strong><%= v.name %></strong></a>  <a id="<%= k %>" class="del">x</a></li>
+	<% }) %>
+</ul>
+<div>
+	name:<input type="text" id="name" />
+	age:<input type="text" id="age" />
+	<button id="addUser">Add User</button>
+</div>
+</script>
+
+<script type="text/template" id="userTemplate">
+<div>Name: <strong><%= name %></strong></div>
+<div>Age: <strong><%= age %></strong></div>
+</script>
+
+<script>
+var Model = Backbone.Model.extend({
+	defaults: {
+		name: "",
+		age: 0
+	}
+});
+
+var Collection = Backbone.Collection.extend({
+	model: Model
+});
+
+var user1 = new Model({name:"aaa", age: 24});
+var user2 = new Model({name:"bbb", age: 41});
+var user3 = new Model({name:"ccc", age: 27});
+
+var group = new Collection([user1, user2]);
+
+group.add(user3);
+
+var GroupView = Backbone.View.extend({
+	initialize: function() {
+		group.bind("add", this.appendGroup, this);
+		this.render();
+	},
+
+	el: " body",
+
+	events: {
+		"click #addUser": "addUser",
+		"click .del": "removeUser",
+	},
+
+	render: function() {
+		var groupData = group.toJSON();
+		$("#container").html(_.template($("#groupTemplate").html(), {data: groupData}));
+		console.log("rendering");
+	},
+
+	addUser: function() {
+		var name = $("#name").val();
+		var age = $("#age").val();
+		var newUser = new Model({name: name, age: age});
+		group.add(newUser);
+	},
+
+	removeUser: function(arg) {
+		var id = arg.target.id;
+		group.remove(group.models[id]);
+		this.render();
+	},
+
+	appendGroup: function() {
+		this.render();
+	}
+});
+
+var UserView = Backbone.View.extend({
+		initialize: function(init) {
+		this.render(init.id);
+	},
+
+	el: "#container",
+
+	render: function(id) {
+		var groupData = group.toJSON();
+		$(this.el).html(_.template($("#userTemplate").html(), groupData[id]));
+	}
+});
+
+var Router = Backbone.Router.extend({
+	routes: {
+	"": "group",
+	"user/:id": "user"
+	},
+
+	groupView: undefined,
+	userView: undefined,
+
+	group: function() {
+		!this.groupView ? this.groupView = new GroupView() : this.groupView.render();
+
+	},
+
+	user: function(id) {
+		!this.userView ? this.userView = new UserView({id: id}) : this.userView.render(id);
+	}
+});
+
+new Router();
+Backbone.history.start();
+</script>
+</body>
+</html>
